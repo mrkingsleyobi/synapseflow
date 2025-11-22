@@ -7,14 +7,15 @@ import type { ResearchQuery } from '@/lib/api-client'
 import { SearchInterface } from '@/components/SearchInterface'
 import { PaperCard } from '@/components/PaperCard'
 import { AgentStatus } from '@/components/AgentStatus'
-import { Loader2, AlertCircle, Sparkles, TrendingUp, Lightbulb } from 'lucide-react'
+import { CitationGraph } from '@/components/CitationGraph'
+import { Loader2, AlertCircle, Sparkles, TrendingUp, Lightbulb, Network } from 'lucide-react'
 
 export default function ResearchPage() {
   const searchParams = useSearchParams()
   const { mutate: research, isPending, data, error } = useResearch()
   const { setResults, setLoading, setError: setStoreError } = useResearchStore()
 
-  const [activeTab, setActiveTab] = useState<'papers' | 'insights' | 'hypotheses'>('papers')
+  const [activeTab, setActiveTab] = useState<'papers' | 'graph' | 'insights' | 'hypotheses'>('papers')
 
   useEffect(() => {
     const query = searchParams.get('q')
@@ -122,6 +123,20 @@ export default function ResearchPage() {
                 </span>
               </button>
 
+              <button
+                onClick={() => setActiveTab('graph')}
+                className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+                  activeTab === 'graph'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Network className="h-4 w-4" />
+                  Citation Graph
+                </span>
+              </button>
+
               {data.crossDomainInsights && data.crossDomainInsights.length > 0 && (
                 <button
                   onClick={() => setActiveTab('insights')}
@@ -163,6 +178,24 @@ export default function ResearchPage() {
                 {data.papers.map((paper, index) => (
                   <PaperCard key={paper.id} paper={paper} rank={index + 1} />
                 ))}
+              </div>
+            )}
+
+            {activeTab === 'graph' && (
+              <div className="space-y-4">
+                <div className="p-6 rounded-lg bg-card border">
+                  <h3 className="text-xl font-semibold mb-4">Citation Network Visualization</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Interactive force-directed graph showing citation relationships between papers.
+                    Node size indicates citation count or PageRank. Drag nodes to explore connections.
+                  </p>
+                  <CitationGraph
+                    papers={data.papers}
+                    citationGraph={data.citationGraph}
+                    width={1200}
+                    height={800}
+                  />
+                </div>
               </div>
             )}
 
